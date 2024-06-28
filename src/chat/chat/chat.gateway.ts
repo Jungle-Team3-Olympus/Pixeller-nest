@@ -17,7 +17,7 @@ export class ChatGateway {
   constructor() {
     setInterval(() => {
       this.server.emit('message', { type: 'move', users: this.users });
-    }, 5000); // 5초마다 메시지를 보냅니다.
+    }, 10); // 5초마다 메시지를 보냅니다.
   }
 
   @SubscribeMessage('connect')
@@ -34,7 +34,7 @@ export class ChatGateway {
 
   @SubscribeMessage('join')
   handleJoin(@MessageBody() data: { username: string }, client: Socket): void {
-    console.log(data);
+    console.log(this.users);
     const welcomeMessage = `${data.username} has joined the chat`;
     // 사용자 정보를 users 배열에 추가
     this.users.push({ username: data.username, x: 1, y: 1 });

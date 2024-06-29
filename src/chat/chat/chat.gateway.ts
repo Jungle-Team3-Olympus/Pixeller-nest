@@ -44,10 +44,8 @@ export class ChatGateway {
   }
 
   @SubscribeMessage('join')
-  handleJoin(@MessageBody() data: { username: string },@ConnectedSocket() client: Socket): void {
+  handleJoin(@MessageBody() data: { username: string }, @ConnectedSocket() client: Socket): void {
     // console.log(this.users);
-    console.log(data);
-    console.log(client);
     const welcomeMessage = `${data.username} has joined the chat`;
 
     // 사용자 정보를 users 배열에 추가
@@ -58,7 +56,6 @@ export class ChatGateway {
       text: welcomeMessage,
       uid: client.id,
     });
-    console.log(this.users);
   }
 
   @SubscribeMessage('leave')

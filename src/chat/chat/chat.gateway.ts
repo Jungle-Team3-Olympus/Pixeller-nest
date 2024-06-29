@@ -35,7 +35,7 @@ export class ChatGateway {
   handleConnection(client: Socket): void {
     console.log(`client connected ${client.id}`);
     // send msg to client
-    client.emit('message', { uid: client.id, type: 'syncUser', users:this.users });
+    // client.emit('message', { uid: client.id, type: 'syncUser', users:this.users });
   }
 
   @SubscribeMessage('message')
@@ -46,8 +46,8 @@ export class ChatGateway {
   @SubscribeMessage('join')
   handleJoin(@MessageBody() data: { username: string },@ConnectedSocket() client: Socket): void {
     // console.log(this.users);
-    console.log(data);
-    console.log(client);
+    // console.log(data);
+    // console.log(client);
     const welcomeMessage = `${data.username} has joined the chat`;
 
     // 사용자 정보를 users 배열에 추가
@@ -57,6 +57,7 @@ export class ChatGateway {
       type: 'newplayer',
       text: welcomeMessage,
       uid: client.id,
+      users: this.users,
     });
     console.log(this.users);
   }
@@ -76,8 +77,8 @@ export class ChatGateway {
 
   @SubscribeMessage('move')
   handleMove(@MessageBody() data: {}): void {
-    this.users.forEach((user: { username: string; x: number; y: number; clientId: string; direction: string }) => {
-      if (user.clientId === data['clientId']) {
+    this.users.forEach((user: { username: string; x: number; y: number; uid: string; direction: string }) => {
+      if (user.uid === data['uid']) {
         user.x = data['x'];
         user.y = data['y'];
         user.direction = data['direction'];

@@ -1,4 +1,4 @@
-import { WebSocketGateway, WebSocketServer, SubscribeMessage, MessageBody } from '@nestjs/websockets';
+import { WebSocketGateway, WebSocketServer, SubscribeMessage, MessageBody, ConnectedSocket } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway(3001, {
@@ -44,11 +44,11 @@ export class ChatGateway {
   }
 
   @SubscribeMessage('join')
-  handleJoin(@MessageBody() data: { username: string }, client: Socket): void {
-    console.log(this.users);
-    const welcomeMessage = `${data.username} has joined the chat`;
+  handleJoin(@MessageBody() data: { username: string },@ConnectedSocket() client: Socket): void {
+    // console.log(this.users);
+    console.log(data);
     console.log(client);
-    console.log("'asdf");
+    const welcomeMessage = `${data.username} has joined the chat`;
 
     // 사용자 정보를 users 배열에 추가
     this.users.push({ uid: client.id, username: data.username, x: 1, y: 1 });

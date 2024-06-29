@@ -20,6 +20,7 @@ export class ChatGateway {
    * @description 사용자 정보를 저장할 배열
    */
   users: {}[] = [];
+  uidNum:number = 0;
 
   constructor() {
     // setInterval(() => {
@@ -51,12 +52,13 @@ export class ChatGateway {
     const welcomeMessage = `${data.username} has joined the chat`;
 
     // 사용자 정보를 users 배열에 추가
-    this.users.push({ uid: client.id, username: data.username, x: 1, y: 1 });
+    this.users.push({ uid: ++this.uidNum, clientid:client.id, username: data.username, x: 1, y: 1 });
     this.server.emit('message', {
       username: data.username,
       type: 'newplayer',
       text: welcomeMessage,
-      uid: client.id,
+      uid: this.uidNum,
+      clientid: client.id,
       users: this.users,
     });
     console.log(this.users);

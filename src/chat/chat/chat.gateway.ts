@@ -35,7 +35,7 @@ export class ChatGateway {
   handleConnection(client: Socket): void {
     console.log(`client connected ${client.id}`);
     // send msg to client
-    client.emit('message', { uid: `${client.id}`, type: 'connect' });
+    client.emit('message', { uid: client.id, type: 'connect' });
   }
 
   @SubscribeMessage('message')
@@ -44,25 +44,34 @@ export class ChatGateway {
   }
 
   @SubscribeMessage('join')
-  handleJoin(@MessageBody() data: { username: string }): void {
-    // console.log(this.users);
+  handleJoin(@MessageBody() data: { username: string }, client: Socket): void {
+    console.log(this.users);
     const welcomeMessage = `${data.username} has joined the chat`;
+    console.log(client);
+    console.log("'asdf");
 
     // 사용자 정보를 users 배열에 추가
-    this.users.push({ username: data.username, x: 1, y: 1 });
-    this.server.emit('message', { type: 'newplayer', text: welcomeMessage });
+    this.users.push({ uid: client.id, username: data.username, x: 1, y: 1 });
+    this.server.emit('message', {
+      username: data.username,
+      type: 'newplayer',
+      text: welcomeMessage,
+      uid: client.id,
+    });
+    console.log(this.users);
   }
 
   @SubscribeMessage('leave')
-  handleLeave(@MessageBody() data: { username: string; clientId: string }): void {
+  handleLeave(@MessageBody() data: { username: string }, client: Socket): void {
     const farewellMessage = `${data.username} has left the chat`;
 
     // 사용자 정보를 users 배열에서 삭제, username으로 삭제
     // this.users = this.users.filter((user: { username: string }) => user.username !== data.username);
-    // 사용자 정보를 users 배열에서 삭제, clientId로 삭제
-    this.users = this.users.filter((user: { clientId: string }) => user.clientId !== data.clientId);
 
-    this.server.emit('message', farewellMessage);
+    // 사용자 정보를 users 배열에서 삭제, clientId로 삭제
+    this.users = this.users.filter((user: { uid: string }) => user.uid !== client.id);
+
+    this.server.emit('message', { type: 'leave', text: farewellMessage, uid: client.id });
   }
 
   @SubscribeMessage('move')

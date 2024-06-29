@@ -35,7 +35,7 @@ export class ChatGateway {
   handleConnection(client: Socket): void {
     console.log(`client connected ${client.id}`);
     // send msg to client
-    client.emit('message', { uid: client.id, type: 'connect' });
+    client.emit('message', { uid: client.id, type: 'syncUser', users:this.users });
   }
 
   @SubscribeMessage('message')

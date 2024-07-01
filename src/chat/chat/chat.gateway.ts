@@ -98,7 +98,8 @@ export class ChatGateway {
       user.username = data['username'];
     }
 
-    client.broadcast.emit('message', { type: 'move', users: Array.from(this.users.values()) });
+    client.broadcast.emit('message', { type: 'move', user: user });
+    // client.broadcast.emit('message', { type: 'move', users: Array.from(this.users.values()) });
     // client.broadcast.emit('message', { type: 'move', users: this.users });
     // this.server.emit('message', { type: 'move', users: this.users });
   }

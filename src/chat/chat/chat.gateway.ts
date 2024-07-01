@@ -1,5 +1,8 @@
 import { WebSocketGateway, WebSocketServer, SubscribeMessage, MessageBody, ConnectedSocket } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { UserService } from '../../user/user.service';
+import { User as UserEntity } from '../../user/entity/user.entity';
+
 
 interface User {
   uid: string;
@@ -31,7 +34,7 @@ export class ChatGateway {
   users: Map<string, User> = new Map<string, User>();
   uidNum:number = 0;
 
-  constructor() {
+  constructor( private readonly userService: UserService ) {
     // setInterval(() => {
     //   this.server.emit('message', { type: 'move', users: this.users });
     // }, 10); // 5초마다 메시지를 보냅니다.

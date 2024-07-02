@@ -30,6 +30,8 @@ export class UserController {
         if (result !== null){
             return {msg : 'Duplicated Id'};
         }
+        console.log('user.user');
+        console.log(user.user);
         return { msg:'Ok', user: this.userService.create(user.user) };
     }
 

@@ -9,8 +9,6 @@ export class UserController {
     @Post('/login')
     async login(@Body() user: {user:User}) {
         const result: User = await this.userService.findOne(user.user);
-        console.log(user.user.user_type );
-        console.log(result);
         if (user.user.user_type != 'G'){
             if (result === null){
                 return {msg:'User not found'};
@@ -30,9 +28,12 @@ export class UserController {
         if (result !== null){
             return {msg : 'Duplicated Id'};
         }
-        console.log('user.user');
-        console.log(user.user);
-        return { msg:'Ok', user: this.userService.create(user.user) };
+        const result_user = await this.userService.create(user.user);
+        if(result_user === null){
+            return {msg:'Fail'};
+        }
+        
+        return { msg:'Ok', user: result_user };
     }
 
 }

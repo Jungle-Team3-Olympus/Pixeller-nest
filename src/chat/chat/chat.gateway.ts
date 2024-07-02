@@ -1,7 +1,7 @@
 import { WebSocketGateway, WebSocketServer, SubscribeMessage, MessageBody, ConnectedSocket } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { UserService } from '../../user/user.service';
-import { User as UserEntity } from '../../user/entity/user.entity';
+import { Member as UserEntity } from '../../user/entity/user.entity';
 
 
 interface User {
@@ -14,7 +14,7 @@ interface User {
 
 @WebSocketGateway(3001, {
   cors: {
-    origin: ['http://localhost:3000', 'http://192.168.0.96:3000', 'http://172.23.176.1:3000'],
+    origin: ['http://localhost:3000', 'http://192.168.0.109:3000', 'http://192.168.0.145:3000', 'http://192.168.0.103:3000', 'http://192.168.0.100:3000'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   },

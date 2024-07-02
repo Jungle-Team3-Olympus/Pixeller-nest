@@ -1,6 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { UserService } from './user.service';
-import { User } from './entity/user.entity';
+import { Member as User } from './entity/user.entity';
 
 @Controller('user')
 export class UserController {
@@ -20,12 +20,16 @@ export class UserController {
                 return { msg:'G Id Join Ok', user: this.userService.create(user.user) };    
             }
         }
-
+        
         return { msg:'Ok', user: result };
     }
-
+    
     @Post('/create')
     async create(@Body() user: {user:User}) {
+        const result: User = await this.userService.duplicateId(user.user);
+        if (result !== null){
+            return {msg : 'Duplicated Id'};
+        }
         return { msg:'Ok', user: this.userService.create(user.user) };
     }
 

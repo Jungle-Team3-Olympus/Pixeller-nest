@@ -11,11 +11,11 @@ import { UserModule } from './user/user.module';
   imports: [
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: 'localhost',
+      host: 'database-1.crqmagci2bfr.ap-northeast-2.rds.amazonaws.com',
       port: 3306,
-      username: 'my_board',
-      password: '1234',
-      database: 'namanmu',
+      username: 'guardian',
+      password: 'dnflxlaWkd123',
+      database: 'olympus',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
     }),

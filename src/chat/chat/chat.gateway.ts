@@ -2,6 +2,8 @@ import { WebSocketGateway, WebSocketServer, SubscribeMessage, MessageBody, Conne
 import { Server, Socket } from 'socket.io';
 import { UserService } from '../../user/user.service';
 import { Member as UserEntity } from '../../user/entity/user.entity';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 
 
 interface User {
@@ -20,6 +22,7 @@ interface User {
     credentials: true,
   },
 })
+@UseGuards(AuthGuard('jwt'))
 export class ChatGateway {
   @WebSocketServer()
   server: Server;

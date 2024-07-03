@@ -2,11 +2,14 @@ import { WebSocketGateway, WebSocketServer, SubscribeMessage, MessageBody, Conne
 import { Server, Socket } from 'socket.io';
 import { UserService } from '../../user/user.service';
 import { Member as UserEntity } from '../../user/entity/user.entity';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 
 
 interface User {
   uid: string;
   username: string;
+  client_id: string;
   x: number;
   y: number;
   direction?: string;
@@ -19,6 +22,7 @@ interface User {
     credentials: true,
   },
 })
+@UseGuards(AuthGuard('jwt'))
 export class ChatGateway {
   @WebSocketServer()
   server: Server;
@@ -68,9 +72,12 @@ export class ChatGateway {
       this.users.set(data.username, {
         uid: data.username,
         username: data.username,
+        client_id: client.id,
         x: 64,
         y: 64,
       });
+    }else{
+      this.users.get(data.username).client_id = client.id;
     }
 
     client.broadcast.emit('message', {
@@ -103,7 +110,6 @@ export class ChatGateway {
       user.direction = data['direction'];
       user.username = data['username'];
     }
-    this.users.set(data['uid'], user);
     client.broadcast.emit('message', { type: 'move', user: user });
     // client.broadcast.emit('message', { type: 'move', users: Array.from(this.users.values()) });
     // client.broadcast.emit('message', { type: 'move', users: this.users });

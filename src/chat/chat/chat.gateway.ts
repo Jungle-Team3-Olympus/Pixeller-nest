@@ -1,12 +1,13 @@
 import { WebSocketGateway, WebSocketServer, SubscribeMessage, MessageBody, ConnectedSocket } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { UserService } from '../../user/user.service';
-import { User as UserEntity } from '../../user/entity/user.entity';
+import { Member as UserEntity } from '../../user/entity/user.entity';
 
 
 interface User {
   uid: string;
   username: string;
+  client_id: string;
   x: number;
   y: number;
   direction?: string;
@@ -14,7 +15,7 @@ interface User {
 
 @WebSocketGateway(3001, {
   cors: {
-    origin: ['http://localhost:3000', 'http://192.168.0.96:3000', 'http://172.23.176.1:3000'],
+    origin: ['http://localhost:3000', 'http://192.168.0.109:3000', 'http://192.168.0.145:3000', 'http://192.168.0.103:3000', 'http://192.168.0.100:3000'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   },
@@ -60,20 +61,26 @@ export class ChatGateway {
   handleJoin(@MessageBody() data: { username: string }, @ConnectedSocket() client: Socket): void {
     const welcomeMessage = `${data.username} has joined the chat`;
     console.log(welcomeMessage);
-
+    console.log(this.users);
     // 사용자 정보를 users 배열에 추가
     // this.users.push({ uid: client.id, username: data.username, x: 1, y: 1 });
-    this.users.set(client.id, {
-      uid: client.id,
-      username: data.username,
-      x: 64,
-      y: 64,
-    });
+    if (this.users.get(data.username) === undefined) {
+      console.log('실행');
+      this.users.set(data.username, {
+        uid: data.username,
+        username: data.username,
+        client_id: client.id,
+        x: 64,
+        y: 64,
+      });
+    }else{
+      this.users.get(data.username).client_id = client.id;
+    }
 
     client.broadcast.emit('message', {
       username: data.username,
       type: 'join',
-      uid: client.id,
+      uid: data.username,
       users: Array.from(this.users.values()),
       text: welcomeMessage,
     });
@@ -86,9 +93,9 @@ export class ChatGateway {
 
     // 사용자 정보를 users 배열에서 삭제, clientId로 삭제
     // this.users = this.users.filter((user: { uid: string }) => user.uid !== client.id);
-    this.users.delete(client.id);
+    this.users.delete(data.username);
 
-    this.server.emit('message', { type: 'leave', text: farewellMessage, uid: client.id });
+    this.server.emit('message', { type: 'leave', text: farewellMessage, uid: data.username });
   }
 
   @SubscribeMessage('move')
@@ -100,7 +107,6 @@ export class ChatGateway {
       user.direction = data['direction'];
       user.username = data['username'];
     }
-
     client.broadcast.emit('message', { type: 'move', user: user });
     // client.broadcast.emit('message', { type: 'move', users: Array.from(this.users.values()) });
     // client.broadcast.emit('message', { type: 'move', users: this.users });

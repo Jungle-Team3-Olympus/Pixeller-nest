@@ -2,6 +2,8 @@ import { WebSocketGateway, WebSocketServer, SubscribeMessage, MessageBody, Conne
 import { Server, Socket } from 'socket.io';
 import { UserService } from '../../user/user.service';
 import { Member as UserEntity } from '../../user/entity/user.entity';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 
 
 interface User {
@@ -15,11 +17,12 @@ interface User {
 
 @WebSocketGateway(3001, {
   cors: {
-    origin: ['http://localhost:3000', 'http://192.168.0.109:3000', 'http://192.168.0.145:3000', 'http://192.168.0.103:3000', 'http://192.168.0.100:3000'],
+    origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   },
 })
+// @UseGuards(AuthGuard('jwt'))
 export class ChatGateway {
   @WebSocketServer()
   server: Server;

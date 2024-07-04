@@ -8,10 +8,8 @@ import { cryptoPw } from '../util/cryptoHandler';
 export class UserService {
     constructor(
         @InjectRepository(User)
-        private usersRepository: Repository<User>,
+        private usersRepository: Repository<User>
     ) {}
-    
-    
 
     async findOne(user: User): Promise<User> {
         user.pw = await cryptoPw(user);

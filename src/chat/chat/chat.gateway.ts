@@ -17,12 +17,12 @@ interface User {
 
 @WebSocketGateway(3001, {
   cors: {
-    origin: ['http://localhost:3000', 'http://192.168.0.109:3000', 'http://192.168.0.145:3000', 'http://192.168.0.103:3000', 'http://192.168.0.100:3000'],
+    origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   },
 })
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 export class ChatGateway {
   @WebSocketServer()
   server: Server;

@@ -12,7 +12,7 @@ async function bootstrap() {
       transform: true,
     }),
   );
-
+    
   app.enableCors({
     origin: '*', // 원하는 도메인
     methods: ['GET', 'POST', 'PUT', 'DELETE'], // 허용할 HTTP 메서드

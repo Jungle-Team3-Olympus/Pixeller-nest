@@ -22,7 +22,7 @@ interface User {
     credentials: true,
   },
 })
-// @UseGuards(AuthGuard('jwt'))
+
 export class ChatGateway {
   @WebSocketServer()
   server: Server;
@@ -48,6 +48,7 @@ export class ChatGateway {
    * @description 클라이언트가 연결되었을 때 실행되는 메서드 + 클라이언트에게 uid 전송, type: connect
    * @param client client socket
    */
+  @UseGuards(AuthGuard('jwt'))
   @SubscribeMessage('connect')
   handleConnection(client: Socket): void {
     console.log(`client connected ${client.id}`);

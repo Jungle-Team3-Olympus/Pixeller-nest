@@ -27,7 +27,7 @@ export class AuthService {
         },
         {
             secret: process.env.JWT_SECRET,
-            expiresIn: '20m',
+            expiresIn: '60m',
         }
         );
 

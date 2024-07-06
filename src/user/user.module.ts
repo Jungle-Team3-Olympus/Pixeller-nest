@@ -5,15 +5,17 @@ import { Member as User } from './entity/user.entity';
 import { UserController } from './user.controller';
 import { AuthService } from 'src/auth/auth.service';
 import { JwtModule } from '@nestjs/jwt';
-import { AtStrategy } from 'src/auth/AtStrategy';
-import { RtStrategy } from 'src/auth/RtStrategy';
-
+import * as dotenv from 'dotenv';
+dotenv.config();
 @Module({
     imports: [
-        JwtModule.register({}), 
+        JwtModule.register({
+            secret: process.env.JWT_SECRET,
+            signOptions: { expiresIn: '600s' },
+        }), 
         TypeOrmModule.forFeature([User])
     ],
     controllers: [UserController],
-    providers: [UserService, AuthService,AtStrategy, RtStrategy],
+    providers: [UserService, AuthService],
 })
 export class UserModule {}

@@ -8,6 +8,7 @@ import { UserController } from './user/user.controller';
 import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
 import * as dotenv from 'dotenv';
+import { PassportModule } from '@nestjs/passport';
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ dotenv.config();
     }),
     ChatModule,
     UserModule,
+    PassportModule,
   ],
   controllers: [AppController],
   providers: [AppService],

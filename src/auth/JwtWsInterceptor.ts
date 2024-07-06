@@ -23,20 +23,22 @@ import {
       if (!token || token === 'null' || token === null) {
         client.emit('error', { message: 'Unauthorized' });
         throw new WsException('Unauthorized');
-        }
+      }
         
-        const now = Date.now();
-        if (now - this.lastVerified < this.verificationInterval) {
-            // 이전 검증 시점으로부터 충분한 시간이 지나지 않았다면 검증을 건너뜀
-            return next.handle();
-        }
+      const now = Date.now();
+      if (now - this.lastVerified < this.verificationInterval) {
+        // 이전 검증 시점으로부터 충분한 시간이 지나지 않았다면 검증을 건너뜀
+        // return next.handle();
+      }
         
-        console.log('token', token);
+      console.log('token', token);
 
       try {
         const decoded = this.jwtService.verify(token);
+        console.log('decoded', decoded);
         // Attach the user to the context
-        context.switchToWs().getData().user = decoded;
+        client.handshake.user = decoded;
+        // context.switchToWs().getData().user = decoded;
         this.lastVerified = now; // 마지막 검증 시점 업데이트
       } catch (err) {
         client.emit('error', { message: 'Unauthorized' });

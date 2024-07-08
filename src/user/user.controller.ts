@@ -3,13 +3,14 @@ import { UserService } from './user.service';
 import { Member as User } from './entity/user.entity';
 import { AuthService } from 'src/auth/auth.service';
 import { Response } from 'express';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('user')
 export class UserController {
-    constructor( 
-        private readonly userService: UserService,
-        private readonly authService: AuthService
-    ) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly authService: AuthService,
+  ) {}
 
     @Post('/login')
     async login(@Body() user: {user:User}, @Res() res:Response){
@@ -20,6 +21,7 @@ export class UserController {
                 result = await this.userService.create(user.user);
                 createYn = true;
             }else{
+
                 return res.status(200).json({msg:'User not found'});
             }
         }
@@ -35,7 +37,9 @@ export class UserController {
         };
         const refreshToken = this.authService.setRefreshToken({user:payload, res});
         const jwt = this.authService.getAccessToken({user:payload});
+      
         this.userService.updateHashedRefreshToken(result.member_id, refreshToken);
+
         const returnJson = { msg:'Ok', user: payload, jwt: jwt, refreshToken: refreshToken, createYn: createYn};
         
         return res.status(200).json(returnJson);    
@@ -83,4 +87,6 @@ export class UserController {
         
     }
 
+  // res.redirect('/');
+  // }
 }

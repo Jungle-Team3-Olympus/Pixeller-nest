@@ -24,6 +24,8 @@ export class Member {
     y: number;
     @Column({ length: 10, nullable: true })
     direction: string;
-    @Column({ length: 100, nullable: true })
+    @Column({ length: 1000, nullable: true })
     api_token: string;
+    @Column({ length: 100, nullable: true })
+    google_identity: string;
 }

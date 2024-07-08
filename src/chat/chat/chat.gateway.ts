@@ -7,7 +7,6 @@ import { AuthGuard } from '@nestjs/passport';
 import { JwtWsInterceptor } from 'src/auth/JwtWsInterceptor';
 import { JwtService } from '@nestjs/jwt';
 
-
 interface User {
   uid: string;
   username: string;
@@ -36,9 +35,9 @@ export class ChatGateway {
    * @example { username: string, x: number, y: number, client: string, direction: string }
    * @description 사용자 정보를 저장할 배열
    */
-  // users: {}[] = [];
+  
   users: Map<string, User> = new Map<string, User>();
-  uidNum:number = 0;
+  uidNum: number = 0;
 
   constructor( 
     private readonly userService: UserService,
@@ -53,6 +52,7 @@ export class ChatGateway {
    * @description 클라이언트가 연결되었을 때 실행되는 메서드 + 클라이언트에게 uid 전송, type: connect
    * @param client client socket
    */
+  @UseGuards(AuthGuard('jwt'))
   @SubscribeMessage('connect')
   handleConnection(client: Socket): void {
     console.log(`client connected ${client.id}`);
@@ -66,15 +66,18 @@ export class ChatGateway {
 
   @SubscribeMessage('join')
   handleJoin(@ConnectedSocket() client: Socket): void {
+
     // console.log(client.handshake['invalidToken']);
     // if(client.handshake['invalidToken']){ 
     //   client.emit('error', { message: 'Invalid token', code: '401' });
     //   return; 
     // }
+
     const data = client.handshake['user'];
     const welcomeMessage = `${data.id} has joined the chat`;
     let x = 64;
     let y = 64;
+
     this.userService.getUserPosition(data.uid).then((result: UserEntity) => {
       console.log('result', result);
       console.log('result !== null', result !== null);

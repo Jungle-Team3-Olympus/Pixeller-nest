@@ -9,6 +9,7 @@ import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
 import * as dotenv from 'dotenv';
 import { PassportModule } from '@nestjs/passport';
+import { OpenviduModule } from './openvidu/openvidu.module';
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ dotenv.config();
     ChatModule,
     UserModule,
     PassportModule,
+    OpenviduModule,
   ],
   controllers: [AppController],
   providers: [AppService],

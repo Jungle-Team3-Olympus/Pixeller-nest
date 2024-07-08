@@ -6,7 +6,6 @@ import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtWsInterceptor } from 'src/auth/JwtWsInterceptor';
 
-
 interface User {
   uid: string;
   username: string;
@@ -35,11 +34,11 @@ export class ChatGateway {
    * @example { username: string, x: number, y: number, client: string, direction: string }
    * @description 사용자 정보를 저장할 배열
    */
-  // users: {}[] = [];
+  
   users: Map<string, User> = new Map<string, User>();
-  uidNum:number = 0;
+  uidNum: number = 0;
 
-  constructor( private readonly userService: UserService ) {
+  constructor(private readonly userService: UserService) {
     // setInterval(() => {
     //   this.server.emit('message', { type: 'move', users: this.users });
     // }, 10); // 5초마다 메시지를 보냅니다.
@@ -53,7 +52,7 @@ export class ChatGateway {
   @SubscribeMessage('connect')
   handleConnection(client: Socket): void {
     console.log(`client connected ${client.id}`);
-    client.emit('message', { uid: client.id, type: 'syncUser', users: Array.from(this.users.values())});
+    client.emit('message', { uid: client.id, type: 'syncUser', users: Array.from(this.users.values()) });
   }
 
   @SubscribeMessage('message')
@@ -67,41 +66,42 @@ export class ChatGateway {
     const welcomeMessage = `${data.id} has joined the chat`;
     let x = 64;
     let y = 64;
-    this.userService.getUserPosition(data.uid).then((result: UserEntity) => {
-      console.log('result', result);
-      console.log('result !== null', result !== null);
-      if (result !== null) {
-        x = result.x,
-        y = result.y,
-        this.users.set(data.uid, {
-          uid: data.uid,
+    this.userService
+      .getUserPosition(data.uid)
+      .then((result: UserEntity) => {
+        // console.log('result', result);
+        // console.log('result !== null', result !== null);
+        if (result !== null) {
+          (x = result.x),
+            (y = result.y),
+            this.users.set(data.uid, {
+              uid: data.uid,
+              username: data.id,
+              client_id: client.id,
+              x: result.x,
+              y: result.y,
+              direction: result.direction,
+            });
+        } else {
+          this.users.set(data.uid, {
+            uid: data.uid,
+            username: data.id,
+            client_id: client.id,
+            x: 64,
+            y: 64,
+          });
+        }
+      })
+      .finally(() => {
+        client.broadcast.emit('message', {
           username: data.id,
-          client_id: client.id,
-          x: result.x,
-          y: result.y,
-          direction: result.direction,
-        });
-      } else {
-        this.users.set(data.uid, {
+          type: 'join',
           uid: data.uid,
-          username: data.id,
-          client_id: client.id,
-          x: 64,
-          y: 64,
+          user: this.users.get(data.uid),
+          text: welcomeMessage,
         });
-      }
-    }).finally(() => {
-      client.broadcast.emit('message', {
-        username: data.id,
-        type: 'join',
-        uid: data.uid,
-        user: this.users.get(data.uid),
-        text: welcomeMessage,
+        client.emit('message', { uid: client.id, type: 'syncMe', x: x, y: y });
       });
-      client.emit('message', { uid: client.id, type: 'syncMe', x: x, y: y });
-
-    });
-
   }
 
   @SubscribeMessage('leave')

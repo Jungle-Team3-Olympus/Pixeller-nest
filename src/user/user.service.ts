@@ -12,11 +12,12 @@ export class UserService {
     ) {}
 
     async findOne(user: User): Promise<User> {
-        user.pw = await cryptoPw(user);
         if (user.user_type === 'G') 
             return await this.usersRepository.findOne({ where: { id: user.id } });
-        else
+        else{
+            user.pw = await cryptoPw(user);
             return await this.usersRepository.findOne({ where: { id: user.id, pw:user.pw } });
+        }
     }
 
     async duplicateId(user: User): Promise<User> {
@@ -69,4 +70,14 @@ export class UserService {
         }
     }
 
+    async getUserPosition(member_id: number): Promise<User> {
+        return await this.usersRepository.findOne({ 
+            where: { member_id: member_id },
+            select: ['x', 'y', 'direction', 'username']  
+        });
+    }
+
+    async setUserPosition(memberId: string, x: number, y: number): Promise<void> {
+        await this.usersRepository.update(memberId, { x:x, y:y });
+    }
 }

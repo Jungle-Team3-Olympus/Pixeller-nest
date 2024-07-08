@@ -94,7 +94,7 @@ export class ChatGateway {
         username: data.id,
         type: 'join',
         uid: data.uid,
-        users: Array.from(this.users.values()),
+        user: this.users.get(data.uid),
         text: welcomeMessage,
       });
       client.emit('message', { uid: client.id, type: 'syncMe', x: x, y: y });

@@ -14,7 +14,16 @@ export class UserController {
     @Post('/login')
     async login(@Body() user: {user:User}, @Res() res:Response){
         console.log('user ',user);
-        const result: User = await this.userService.findOne(user.user);
+        let result: User = await this.userService.findOne(user.user);
+        let createYn = false;
+        if (result === null){
+            if(user.user.user_type === 'G'){
+                result = await this.userService.create(user.user);
+                createYn = true;
+            }else{
+                return {msg:'User not found'};
+            }
+        }
         console.log('/login user', result);
         const payload = {
             uid: result.member_id,
@@ -28,19 +37,9 @@ export class UserController {
         };
         const refreshToken = this.authService.setRefreshToken({user:payload, res});
         const jwt = this.authService.getAccessToken({user:payload});
-        const returnJson = { msg:'Ok', user: payload, jwt: jwt, refreshToken: refreshToken};
-        if (user.user.user_type != 'G'){
-            if (result === null){
-                return {msg:'User not found'};
-            }
-            return res.status(200).json(returnJson);
-        }else{
-            if (result === null) {
-                return { msg:'G Id Join Ok', user: this.userService.create(user.user) };    
-            }
-            return res.status(200).json(returnJson);
-        }
+        const returnJson = { msg:'Ok', user: payload, jwt: jwt, refreshToken: refreshToken, createYn: createYn};
         
+        return res.status(200).json(returnJson);    
     }
     
     @Post('/create')

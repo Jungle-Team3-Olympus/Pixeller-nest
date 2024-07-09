@@ -16,9 +16,10 @@ interface User {
   direction?: string;
 }
 
-@WebSocketGateway(3001, {
+@WebSocketGateway({
+  namespace: '/ws',
   cors: {
-    origin: ['https://pixeller.net', 'http://pixeller.net', '172.31.32.*'],
+    origin: ['https://pixeller.net', 'http://pixeller.net'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   },

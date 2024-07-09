@@ -19,7 +19,7 @@ interface User {
 @WebSocketGateway({
   namespace: '/ws',
   cors: {
-    origin: '*',
+    origin: ['https://pixeller.net', 'http://pixeller.net'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   },

@@ -33,7 +33,7 @@ dotenv.config();
     ChatModule,
     UserModule,
     PassportModule,
-    OpenviduModule,
+    // OpenviduModule,
   ],
   controllers: [AppController],
   providers: [AppService],

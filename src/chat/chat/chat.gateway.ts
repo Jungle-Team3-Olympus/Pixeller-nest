@@ -16,7 +16,8 @@ interface User {
   direction?: string;
 }
 
-@WebSocketGateway(3001, {
+@WebSocketGateway( {
+  namespace: '/ws',
   cors: {
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],

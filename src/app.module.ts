@@ -18,6 +18,7 @@ dotenv.config();
       envFilePath: '.env',
       isGlobal: true,
     }),
+    //test
     TypeOrmModule.forRoot({
       type: process.env.DB_TYPE as any,
       host: process.env.DB_HOST,

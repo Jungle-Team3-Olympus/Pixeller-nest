@@ -143,7 +143,8 @@ export class ChatGateway {
   @SubscribeMessage('disconnect')
   handleDisconnect(client: Socket): void {
     const data = client.handshake['user'];
-    console.log(`client disconnected ${data.uid}`);
+    // console.log(`client disconnected ${data.uid}`);
+    if(data === undefined) return;
     const x = this.users.get(data.uid).x;
     const y = this.users.get(data.uid).y;
 

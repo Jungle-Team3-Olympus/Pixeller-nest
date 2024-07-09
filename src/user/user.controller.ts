@@ -1,19 +1,19 @@
-import { Body, Controller, Post, Res } from '@nestjs/common';
+import { Body, Controller, Header, Headers, Post, Res } from '@nestjs/common';
 import { UserService } from './user.service';
 import { Member as User } from './entity/user.entity';
 import { AuthService } from 'src/auth/auth.service';
 import { Response } from 'express';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('user')
 export class UserController {
-    constructor( 
-        private readonly userService: UserService,
-        private readonly authService: AuthService
-    ) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly authService: AuthService,
+  ) {}
 
     @Post('/login')
     async login(@Body() user: {user:User}, @Res() res:Response){
-        console.log('user ',user);
         let result: User = await this.userService.findOne(user.user);
         let createYn = false;
         if (result === null){
@@ -21,14 +21,14 @@ export class UserController {
                 result = await this.userService.create(user.user);
                 createYn = true;
             }else{
-                return {msg:'User not found'};
+
+                return res.status(200).json({msg:'User not found'});
             }
         }
-        console.log('/login user', result);
         const payload = {
             uid: result.member_id,
             id: result.id,
-            username: result.username,
+            username: result.id,
             email: result.email,
             user_type: result.user_type,
             x: result.x,
@@ -37,6 +37,9 @@ export class UserController {
         };
         const refreshToken = this.authService.setRefreshToken({user:payload, res});
         const jwt = this.authService.getAccessToken({user:payload});
+      
+        this.userService.updateHashedRefreshToken(result.member_id, refreshToken);
+
         const returnJson = { msg:'Ok', user: payload, jwt: jwt, refreshToken: refreshToken, createYn: createYn};
         
         return res.status(200).json(returnJson);    
@@ -56,23 +59,34 @@ export class UserController {
         return { msg:'Ok', user: result_user };
     }
 
-    // @Post('refresh')
-    // @UseGuards(AuthGuard('jwt-refresh'))
-    // async refreshToken(@Req() req: Request, @Res() res: Response) {
-    // const { refreshToken, sub, email } = req.user as JwtPayload & {
-    //     refreshToken: string;
-    // };
+    @Post('refresh')
+    async refreshToken(@Headers('Authorization') auth:string ,@Body() refreshToken: any, @Res() res: Response) {
+        const token = auth.split(' ')[1];
+        const payload = this.authService.decodeToken(token);
 
-    // const user = await this.userService.findByIdAndCheckRT(sub, refreshToken);
+        const result = await this.userService.validateRefreshToken(payload.uid, refreshToken.refreshToken);
+        if(result.result){
+            const payload = {
+                uid: result.user.member_id,
+                id: result.user.id,
+                username: result.user.id,
+                email: result.user.email,
+                user_type: result.user.user_type,
+                x: result.user.x,
+                y: result.user.y,
+                direction: result.user.direction,
+            };
+            const refreshToken = this.authService.setRefreshToken({user:payload, res});
+            const jwt = this.authService.getAccessToken({user:payload});
+            this.userService.updateHashedRefreshToken(result.user.member_id, refreshToken);
+            return res.status(200).json({msg:'Token refresh is done',jwt: jwt, refreshToken: refreshToken}); 
+        }else{
+            res.setHeader('Location', '/');
+            return res.redirect(307, '/'); 
+        }
+        
+    }
 
-    // const token = this.authService.getToken({ sub, email });
-
-    // res.cookie('access-token', token.accessToken);
-    // res.cookie('refresh-token', token.refreshToken);
-
-    // await this.userService.updateHashedRefreshToken(user.id, refreshToken);
-
-    // res.redirect('/');
-    // }
-
+  // res.redirect('/');
+  // }
 }

@@ -1,7 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+// import { AppModule } from './app.module.js';
 import { ValidationPipe } from '@nestjs/common';
 import * as dotenv from 'dotenv';
+import * as express from 'express';
 
 dotenv.config();
 
@@ -22,8 +24,9 @@ async function bootstrap() {
     // exposedHeaders: ['set-cookie'], // 클라이언트에서 접근 가능한 헤더
   });
 
-  // 전역 파이프 설정
-  app.useGlobalPipes(new ValidationPipe());
+  // express.raw() 설정 -> openvidu webhook
+  app.use(express.raw({ type: 'application/webhook+json' }));
+
   await app.listen(3333);
 }
 bootstrap();

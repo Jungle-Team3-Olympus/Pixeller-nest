@@ -28,7 +28,7 @@ jobs:
           CI: false
 
       - name: Create ZIP archive
-        run: zip -qq -r ./build-server.zip .
+        run: zip -qq -r ./build-server.zip . -x "dist/*"
         shell: bash
 
       - name: Configure AWS credentials

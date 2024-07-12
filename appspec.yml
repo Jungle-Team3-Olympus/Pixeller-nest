@@ -1,0 +1,22 @@
+version: 0.0
+os: linux
+
+files:
+  - source: /
+    destination: /home/ubuntu/nest-app
+    overwrite: yes
+
+file_exists_behavior: OVERWRITE
+
+permissions:
+  - object: /home/ubuntu/nest-app
+    pattern: "**"
+    owner: ubuntu
+    group: ubuntu
+    mode: 755
+
+hooks:
+  AfterInstall:
+    - location: deploy.sh
+      timeout: 60
+      runas: root

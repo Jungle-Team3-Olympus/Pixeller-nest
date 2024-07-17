@@ -130,7 +130,7 @@ export class AuctionGateway {
     const messageType = result.success ? 'bid' : 'error';
     const room = this.rooms.get(payload.product_id);
     if (room) {
-      if (Number(payload.bid_price) >= room.max_bid_price) {
+      if (Number(payload.bid_price) > room.max_bid_price) {
         room.max_bid_price = Number(payload.bid_price);
         room.max_user = this.users.get(payload.username);
       }

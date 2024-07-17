@@ -8,14 +8,14 @@ export class Auction {
   product_id: number;
   @Column({ type: 'int', nullable: false })
   member_id: number;
-  @Column({ type: 'datetime', nullable: false })
-  bid_time: Date;
+  @Column({ type: 'int', nullable: false })
+  bid_price: number;
 
+  @Column({ type: 'datetime', nullable: true })
+  bid_time: Date;
   // 경매 결과가 없을 수도 있다.
   @Column({ type: 'int', nullable: true })
   auction_result_id: number;
-  @Column({ type: 'int', nullable: true })
-  bid_price: number;
 }
 
 @Entity()

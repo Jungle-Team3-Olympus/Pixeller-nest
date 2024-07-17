@@ -47,20 +47,21 @@ export class AuctionService {
   }
 
   undefinedCheck(toCheck: AuctionDTO): boolean {
-    return toCheck.bid_price !== undefined && toCheck.member_id !== undefined && toCheck.product_id !== undefined;
+    console.log(toCheck);
+    return toCheck.bid_price !== undefined && toCheck.username !== undefined && toCheck.product_id !== undefined;
   }
 
   async handleBid(payload: AuctionDTO): Promise<{ success: boolean; message: string }> {
     const transfer = new Auction();
-
-    if (!this.undefinedCheck(payload)) {
+    // console.log('handleBid 실행됨', payload);
+    if (this.undefinedCheck(payload)) {
       transfer.auction_result_id = null;
       transfer.bid_price = Number(payload.bid_price);
       transfer.bid_time = new Date();
-      transfer.member_id = Number(payload.member_id);
+      transfer.member_id = Number(payload.username);
       transfer.product_id = Number(payload.product_id);
 
-      await this.create(transfer);
+      //   await this.create(transfer);
       return { success: true, message: 'bid success' };
     } else {
       return { success: false, message: 'bid fail' };

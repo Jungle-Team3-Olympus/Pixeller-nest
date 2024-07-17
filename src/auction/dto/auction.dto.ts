@@ -8,7 +8,7 @@ export class AuctionDTO {
 
   @ApiProperty()
   @IsNotEmpty()
-  member_id: string;
+  username: string;
 
   @ApiProperty()
   @IsNotEmpty()

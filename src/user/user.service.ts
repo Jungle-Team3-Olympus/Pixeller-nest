@@ -12,15 +12,20 @@ export class UserService {
     ) {}
 
     async findOne(user: User): Promise<User> {
-        user.pw = await cryptoPw(user);
         if (user.user_type === 'G') 
-            return await this.usersRepository.findOne({ where: { id: user.id } });
-        else
+            return await this.usersRepository.findOne({ where: { google_identity: user.google_identity } });
+        else{
+            user.pw = await cryptoPw(user);
             return await this.usersRepository.findOne({ where: { id: user.id, pw:user.pw } });
+        }
     }
 
     async duplicateId(user: User): Promise<User> {
-        return await this.usersRepository.findOne({ where: { id: user.id } });
+        if(user.user_type === 'G'){
+            return await this.usersRepository.findOne({ where: { google_identity: user.google_identity } });
+        }else{
+            return await this.usersRepository.findOne({ where: { id: user.id } });
+        }
     }
 
     async create(user: User): Promise<User> {
@@ -39,7 +44,7 @@ export class UserService {
         //     .into(User,checks)
         //     .values(user)
         //     .execute();   
-        return await this.findOne(user);
+        return await this.usersRepository.findOne({ where: {id : user.id, pw: user.pw}});
     }
 
     checkValidator(user: User, checks: string[]){
@@ -68,5 +73,28 @@ export class UserService {
             } 
         }
     }
+
+    async getUserPosition(member_id: number): Promise<User> {
+        return await this.usersRepository.findOne({ 
+            where: { member_id: member_id },
+            select: ['x', 'y', 'direction', 'username']  
+        });
+    }
+
+    async setUserPosition(memberId: string, x: number, y: number): Promise<void> {
+        await this.usersRepository.update(memberId, { x:x, y:y });
+    }
+
+    async updateHashedRefreshToken(memberId: number, refreshToken: string): Promise<void> {
+        console.log('updateHashedRefreshToken', memberId, ':',refreshToken);
+        await this.usersRepository.update(memberId, { api_token: refreshToken });
+    }
+
+    async validateRefreshToken(memberId: number, refreshToken: string): Promise<any> {
+        const user = await this.usersRepository.findOne({ where: { member_id: memberId, api_token: refreshToken } });
+        if(user === null) return { result:false };
+        return { result:true, user:user };
+    }
+
 
 }

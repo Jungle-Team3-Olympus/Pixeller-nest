@@ -9,6 +9,7 @@ import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
 import * as dotenv from 'dotenv';
 import { PassportModule } from '@nestjs/passport';
+import { AuctionModule } from './auction/auction.module';
 
 dotenv.config();
 
@@ -28,11 +29,12 @@ dotenv.config();
       database: process.env.DB_DATABASE,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
-      logging: "all",
+      logging: 'all',
     }),
     ChatModule,
     UserModule,
     PassportModule,
+    AuctionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

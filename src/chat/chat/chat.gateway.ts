@@ -16,9 +16,10 @@ interface User {
   direction?: string;
 }
 
-@WebSocketGateway(3001, {
+@WebSocketGateway({
+  namespace: '/ws',
   cors: {
-    origin: '*',
+    origin: ['https://pixeller.net', 'http://pixeller.net', '//192.168.0.96:3000'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   },
@@ -142,7 +143,8 @@ export class ChatGateway {
   @SubscribeMessage('disconnect')
   handleDisconnect(client: Socket): void {
     const data = client.handshake['user'];
-    console.log(`client disconnected ${data.uid}`);
+    // console.log(`client disconnected ${data.uid}`);
+    if(data === undefined) return;
     const x = this.users.get(data.uid).x;
     const y = this.users.get(data.uid).y;
 
@@ -166,6 +168,11 @@ export class ChatGateway {
     }
   }
 
+  @SubscribeMessage('userList')
+  handleUserList(@ConnectedSocket() client: Socket): void {
+    console.log('userList', Array.from(this.users.values()));
+    client.emit('message', { type: 'userList', users: Array.from(this.users.values()) });
+  }
 
 
 }

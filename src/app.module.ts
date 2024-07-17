@@ -9,7 +9,6 @@ import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
 import * as dotenv from 'dotenv';
 import { PassportModule } from '@nestjs/passport';
-import { OpenviduModule } from './openvidu/openvidu.module';
 
 dotenv.config();
 
@@ -19,6 +18,7 @@ dotenv.config();
       envFilePath: '.env',
       isGlobal: true,
     }),
+    //test
     TypeOrmModule.forRoot({
       type: process.env.DB_TYPE as any,
       host: process.env.DB_HOST,
@@ -33,7 +33,6 @@ dotenv.config();
     ChatModule,
     UserModule,
     PassportModule,
-    OpenviduModule,
   ],
   controllers: [AppController],
   providers: [AppService],

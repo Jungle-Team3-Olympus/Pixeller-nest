@@ -44,7 +44,7 @@ export class UserService {
         //     .into(User,checks)
         //     .values(user)
         //     .execute();   
-        return await this.findOne(user);
+        return await this.usersRepository.findOne({ where: {id : user.id, pw: user.pw}});
     }
 
     checkValidator(user: User, checks: string[]){

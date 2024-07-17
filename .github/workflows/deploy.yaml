@@ -1,0 +1,51 @@
+name: Deploy Nest Server
+
+on:
+  push:
+    branches:
+      - server-hashmap
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20.x"
+
+      - name: Check Node v
+        run: node -v
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Nest Server
+        run: npm run build
+        env:
+          CI: false
+
+      - name: Create ZIP archive
+        run: zip -qq -r ./build-server.zip . -x "dist/*"
+        shell: bash
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Upload to S3
+        run: |
+          aws s3 cp ./build-server.zip s3://${{ secrets.S3_BUCKET_NAME }}/build-server.zip
+
+      - name: Deploy to EC2 with CodeDeploy
+        run: |
+          aws deploy create-deployment \
+            --application-name ${{ secrets.CODEDEPLOY_APP_NAME }} \
+            --deployment-config-name CodeDeployDefault.AllAtOnce \
+            --deployment-group-name ${{ secrets.CODEDEPLOY_GROUP_NAME }} \
+            --s3-location bucket=${{ secrets.S3_BUCKET_NAME }},key=build-server.zip,bundleType=zip

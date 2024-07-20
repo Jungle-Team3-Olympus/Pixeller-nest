@@ -87,6 +87,7 @@ export class AuctionGateway {
       // message: `you joined at ${payload.room}.`,
       message: `경매장에 입장하였습니다.`,
       started: room.on_air,
+      done: room.done,
     });
     client.broadcast
       .to(payload.room)

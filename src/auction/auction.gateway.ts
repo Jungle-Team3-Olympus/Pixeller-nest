@@ -6,24 +6,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { Auction } from './entity/auction.entity';
 import { AuctionService } from './auction.service';
 import { AuctionDTO, AuctionJoinDTO } from './dto/auction.dto';
-
-interface User {
-  username: string;
-  joinedRoom: string;
-}
-
-interface AuctionRoom {
-  room_id: string;
-  room_name: string;
-  on_air: boolean;
-  max_bid_price: number;
-  max_user?: User;
-  changed: boolean;
-  users: User[];
-  bidTimeOut: NodeJS.Timeout;
-  countDownIntervals: NodeJS.Timeout;
-  remainingTime?: number;
-}
+import { AuctionRoom, User } from './interfaces/auction.interface';
 
 @WebSocketGateway({
   namespace: '/auction',
@@ -74,6 +57,7 @@ export class AuctionGateway {
         room_id: payload.room,
         room_name: payload.room,
         on_air: false,
+        done: false,
         max_bid_price: 0,
         changed: false,
         users: [this.users.get(payload.username)],
@@ -116,12 +100,13 @@ export class AuctionGateway {
   endAuction(@ConnectedSocket() client: any, @MessageBody() payload: any): void {
     const room = this.rooms.get(payload.room);
     room.on_air = false;
+    room.done = true;
 
     const message = {
       type: 'end',
-      message: `[ 낙찰 선언 🎉] "축하합니다! ${room.max_user.username}님, ${room.max_bid_price}원에 낙찰되셨습니다!"`,
+      message: `[ 낙찰 선언 🎉] "축하합니다! ${room.max_user?.username}님, ${room.max_bid_price}원에 낙찰되셨습니다!"`,
       bid_price: room.max_bid_price,
-      winner: room.changed ? room.max_user.username : '',
+      winner: room.changed ? room.max_user?.username : '',
     };
 
     this.server.to(payload.room).emit('message', message);
@@ -132,20 +117,27 @@ export class AuctionGateway {
    */
   @SubscribeMessage('bid')
   async bid(@ConnectedSocket() client: any, @MessageBody() payload: AuctionDTO): Promise<void> {
+    console.log('bid payload', payload);
     const result = await this.auctionService.handleBid(payload);
+    console.log('bid result', result);
     const messageType = result.success ? 'bid' : 'error';
     const room = this.rooms.get(payload.product_id);
-    if (room && room.on_air && result.success) {
+    if (room && room.on_air && result.success && !room.done) {
       if (Number(payload.bid_price) > room.max_bid_price) {
+        // console.log('max price 갱신');
         room.max_bid_price = Number(payload.bid_price);
         room.max_user = this.users.get(payload.username);
+        // console.log('max user 갱신', room.max_user);
         room.changed = true;
         clearTimeout(room.bidTimeOut);
         clearInterval(room.countDownIntervals);
         this.startBidTimeout(room);
-        this.server
-          .to(payload.product_id)
-          .emit('message', { type: messageType, message: result.message, bid_price: room.max_bid_price });
+        this.server.to(payload.product_id).emit('message', {
+          type: messageType,
+          username: payload.username,
+          message: result.message,
+          bid_price: room.max_bid_price,
+        });
       }
     }
     // console.log('bid :', room.max_bid_price);

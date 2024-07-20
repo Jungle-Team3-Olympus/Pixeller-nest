@@ -47,7 +47,7 @@ export class AuctionService {
   }
 
   undefinedCheck(toCheck: AuctionDTO): boolean {
-    console.log(toCheck);
+    // console.log(toCheck);
     return toCheck.bid_price !== undefined && toCheck.username !== undefined && toCheck.product_id !== undefined;
   }
 

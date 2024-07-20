@@ -61,10 +61,12 @@ export class AuctionService {
       transfer.member_id = Number(payload.username);
       transfer.product_id = Number(payload.product_id);
 
+      const msg = '[입찰 알림 🔔] ' + payload.username + '님이 ' + payload.bid_price + '원에 입찰하셨습니다!';
+
       //   await this.create(transfer);
-      return { success: true, message: 'bid success' };
+      return { success: true, message: msg };
     } else {
-      return { success: false, message: 'bid fail' };
+      return { success: false, message: 'bid fail!' };
     }
   }
 }

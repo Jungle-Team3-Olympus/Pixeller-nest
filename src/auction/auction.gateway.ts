@@ -93,7 +93,8 @@ export class AuctionGateway {
     client.join(payload.room);
     client.emit('message', {
       type: 'join',
-      message: `you joined at ${payload.room}.`,
+      // message: `you joined at ${payload.room}.`,
+      message: `경매장에 입장하였습니다.`,
       started: this.rooms.get(payload.room).on_air,
     });
     client.broadcast
@@ -118,9 +119,9 @@ export class AuctionGateway {
 
     const message = {
       type: 'end',
-      message: `[ 낙찰 선언 🎉] "축하합니다! ${room.max_user}님, ${room.max_bid_price}원에 낙찰되셨습니다!"`,
+      message: `[ 낙찰 선언 🎉] "축하합니다! ${room.max_user.username}님, ${room.max_bid_price}원에 낙찰되셨습니다!"`,
       bid_price: room.max_bid_price,
-      winner: room.changed ? room.max_user : '',
+      winner: room.changed ? room.max_user.username : '',
     };
 
     this.server.to(payload.room).emit('message', message);

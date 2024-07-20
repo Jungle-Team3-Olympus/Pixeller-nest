@@ -137,6 +137,7 @@ export class ChatGateway {
       user.direction = data['direction'];
       user.username = session.id;
     }
+    console.log("user", user);
     client.broadcast.emit('message', { type: 'move', user: user });
   }
 

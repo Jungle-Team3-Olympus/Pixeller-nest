@@ -12,18 +12,23 @@ interface User {
   joinedRoom: string;
 }
 
-interface AuctionObject {
+interface AuctionRoom {
   room_id: string;
   room_name: string;
-  started: boolean;
+  on_air: boolean;
   max_bid_price: number;
   max_user?: User;
+  changed: boolean;
   users: User[];
+  bidTimeOut: NodeJS.Timeout;
+  countDownIntervals: NodeJS.Timeout;
+  remainingTime?: number;
 }
 
 @WebSocketGateway({
   namespace: '/auction',
   cors: {
+    // origin: ['https://pixeller.net', 'http://pixeller.net'],
     origin: ['*'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
@@ -38,7 +43,7 @@ export class AuctionGateway {
 
   // Sessions
   private users: Map<string, User> = new Map<string, User>();
-  private rooms: Map<string, AuctionObject> = new Map<string, AuctionObject>();
+  private rooms: Map<string, AuctionRoom> = new Map<string, AuctionRoom>();
   /**
    * <----- Room <hash> ----->
    * | room_id | room_name | started? (y/n)  | max_bid_price | max_user | users | ever started? | end_time | start_time |  ... |
@@ -62,17 +67,18 @@ export class AuctionGateway {
    */
   @SubscribeMessage('join')
   joinAuction(@ConnectedSocket() client: any, @MessageBody() payload: AuctionJoinDTO): void {
-    console.log('join 실행됨');
-
     this.users.set(payload.username, { username: payload.username, joinedRoom: payload.room });
 
     if (!this.rooms.has(payload.room)) {
       this.rooms.set(payload.room, {
         room_id: payload.room,
         room_name: payload.room,
-        started: false,
+        on_air: false,
         max_bid_price: 0,
+        changed: false,
         users: [this.users.get(payload.username)],
+        bidTimeOut: null,
+        countDownIntervals: null,
       });
     } else {
       const room = this.rooms.get(payload.room);
@@ -88,36 +94,36 @@ export class AuctionGateway {
     client.emit('message', {
       type: 'join',
       message: `you joined at ${payload.room}.`,
-      started: this.rooms.get(payload.room).started,
+      started: this.rooms.get(payload.room).on_air,
     });
     client.broadcast
       .to(payload.room)
       .emit('message', { type: 'join', message: `${payload.username}님이 입장했습니다.` });
-    // console.log('user 출력', this.users);
-    // console.log('room 출력', this.rooms);
     // console.log('room users 출력', this.rooms.get(payload.room)?.users);
   }
 
   @SubscribeMessage('start')
   startAuction(@ConnectedSocket() client: any, @MessageBody() payload: any): void {
-    console.log('start 실행됨');
-    this.rooms.get(payload.room).started = true;
+    const room = this.rooms.get(payload.room);
+    room.on_air = true;
+    room.max_bid_price = payload.init_price;
+
     this.server.to(payload.room).emit('message', { type: 'start', message: `경매가 시작됩니다.` });
   }
 
   @SubscribeMessage('end')
   endAuction(@ConnectedSocket() client: any, @MessageBody() payload: any): void {
-    console.log('end 실행됨');
-
     const room = this.rooms.get(payload.room);
-    room.started = false;
+    room.on_air = false;
 
-    this.server.to(payload.room).emit('message', {
+    const message = {
       type: 'end',
-      message: `경매가 종료됩니다.`,
+      message: `[ 낙찰 선언 🎉] "축하합니다! ${room.max_user}님, ${room.max_bid_price}원에 낙찰되셨습니다!"`,
       bid_price: room.max_bid_price,
-      winner: room.max_user.username,
-    });
+      winner: room.changed ? room.max_user : '',
+    };
+
+    this.server.to(payload.room).emit('message', message);
   }
 
   /**
@@ -125,19 +131,22 @@ export class AuctionGateway {
    */
   @SubscribeMessage('bid')
   async bid(@ConnectedSocket() client: any, @MessageBody() payload: AuctionDTO): Promise<void> {
-    console.log('bid 실행됨');
     const result = await this.auctionService.handleBid(payload);
     const messageType = result.success ? 'bid' : 'error';
     const room = this.rooms.get(payload.product_id);
-    if (room) {
-      if (Number(payload.bid_price) >= room.max_bid_price) {
+    if (room && room.on_air && result.success) {
+      if (Number(payload.bid_price) > room.max_bid_price) {
         room.max_bid_price = Number(payload.bid_price);
         room.max_user = this.users.get(payload.username);
+        room.changed = true;
+        clearTimeout(room.bidTimeOut);
+        clearInterval(room.countDownIntervals);
+        this.startBidTimeout(room);
+        this.server
+          .to(payload.product_id)
+          .emit('message', { type: messageType, message: result.message, bid_price: room.max_bid_price });
       }
     }
-    this.server
-      .to(payload.product_id)
-      .emit('message', { type: messageType, message: result.message, bid_price: room.max_bid_price });
     // console.log('bid :', room.max_bid_price);
   }
 
@@ -153,8 +162,6 @@ export class AuctionGateway {
 
   @SubscribeMessage('leave')
   leaveAuction(@ConnectedSocket() client: any, @MessageBody() payload: any): void {
-    console.log('leave 실행됨');
-
     // auction Service 안으로 이동
     if (this.rooms.has(payload.room)) {
       const room = this.rooms.get(payload.room);
@@ -175,5 +182,25 @@ export class AuctionGateway {
     // console.log('user 출력', this.users);
     // console.log('room 출력', this.rooms);
     // console.log('room users 출력', this.rooms.get(payload.room)?.users);
+  }
+
+  startBidTimeout(room: AuctionRoom): void {
+    room.remainingTime = 10;
+    room.bidTimeOut = setTimeout(() => {
+      this.endAuction(null, { room: room.room_id });
+    }, 10000);
+
+    room.countDownIntervals = setInterval(() => {
+      room.remainingTime -= 1;
+      if (room.remainingTime <= 0) {
+        clearInterval(room.countDownIntervals);
+      } else if (room.remainingTime <= 5) {
+        this.server.to(room.room_id).emit('message', {
+          type: 'countdown',
+          tick: room.remainingTime,
+          message: `[경매 종료 임박 ⏳] ${room.remainingTime}초 `,
+        });
+      }
+    }, 1000);
   }
 }

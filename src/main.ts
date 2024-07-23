@@ -4,7 +4,6 @@ import { ValidationPipe } from '@nestjs/common';
 import * as dotenv from 'dotenv';
 import * as express from 'express';
 import { IoAdapter } from '@nestjs/platform-socket.io';
-import { CorsInterceptor } from './util/CorsInterceptor';
 
 dotenv.config();
 

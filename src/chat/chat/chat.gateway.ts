@@ -19,10 +19,10 @@ interface User {
 @WebSocketGateway({
   namespace: '/ws',
   cors: {
-    origin: '*',
+    origin: ['*'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
-    exposedHeaders: ['set-cookie'], // 클라이언트에서 접근 가능한 헤더
+    // exposedHeaders: ['set-cookie'], // 클라이언트에서 접근 가능한 헤더
   },
 })
 @UseInterceptors(JwtWsInterceptor)

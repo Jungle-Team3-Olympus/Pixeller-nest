@@ -20,8 +20,9 @@ interface User {
   namespace: '/ws',
   cors: {
     origin: ['https://pixeller.net', 'http://pixeller.net', 'http//192.168.0.96:3000'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
+    exposedHeaders: ['set-cookie'], // 클라이언트에서 접근 가능한 헤더
   },
 })
 @UseInterceptors(JwtWsInterceptor)

@@ -1,15 +1,16 @@
-// test
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 // import { AppModule } from './app.module.js';
 import { ValidationPipe } from '@nestjs/common';
 import * as dotenv from 'dotenv';
 import * as express from 'express';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 
 dotenv.config();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.useWebSocketAdapter(new IoAdapter(app));
   app.useGlobalPipes(
     new ValidationPipe({
       // whitelist: true, // DTO에 없는 값은 거르고 에러메세지 출력

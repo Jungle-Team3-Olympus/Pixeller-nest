@@ -1,10 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-// import { AppModule } from './app.module.js';
 import { ValidationPipe } from '@nestjs/common';
 import * as dotenv from 'dotenv';
 import * as express from 'express';
 import { IoAdapter } from '@nestjs/platform-socket.io';
+import { CorsInterceptor } from './util/CorsInterceptor';
 
 dotenv.config();
 
@@ -20,7 +20,7 @@ async function bootstrap() {
   );
     
   app.enableCors({
-    origin: '*', // 원하는 도메인
+    origin: ['*'], // 원하는 도메인
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // 허용할 HTTP 메서드
     credentials: true, // 클라이언트에서 인증정보(Cookie 등)를 전송할 수 있도록 설정
     // exposedHeaders: ['set-cookie'], // 클라이언트에서 접근 가능한 헤더
@@ -28,6 +28,8 @@ async function bootstrap() {
 
   // express.raw() 설정 -> openvidu webhook
   app.use(express.raw({ type: 'application/webhook+json' }));
+
+  // app.useGlobalInterceptors(new CorsInterceptor());
 
   await app.listen(3333);
 }

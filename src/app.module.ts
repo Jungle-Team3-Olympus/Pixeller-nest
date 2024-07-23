@@ -46,7 +46,7 @@ export class AppModule implements NestModule{
         if (req.method === 'OPTIONS') {
           res.header('Access-Control-Allow-Origin', '*');
           res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-          res.header('Access-Control-Allow-Headers', 'Content-Type, Accept');
+          res.header('Access-Control-Allow-Headers', 'Content-Type, Accept, Authorization, Origin');
           res.sendStatus(204);
         } else {
           next();

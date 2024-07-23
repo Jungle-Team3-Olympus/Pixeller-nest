@@ -19,7 +19,7 @@ interface User {
 @WebSocketGateway({
   namespace: '/ws',
   cors: {
-    origin: ['https://pixeller.net', 'http://pixeller.net', '//192.168.0.96:3000'],
+    origin: ['https://pixeller.net', 'http://pixeller.net', 'http//192.168.0.96:3000'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   },
@@ -170,6 +170,7 @@ export class ChatGateway {
 
   @SubscribeMessage('userList')
   handleUserList(@ConnectedSocket() client: Socket): void {
+    console.log('userList 이벤트 발생!');
     console.log('userList', Array.from(this.users.values()));
     client.emit('message', { type: 'userList', users: Array.from(this.users.values()) });
   }

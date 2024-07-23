@@ -19,9 +19,10 @@ interface User {
 @WebSocketGateway({
   namespace: '/ws',
   cors: {
-    origin: ['https://pixeller.net', 'http://pixeller.net', 'http//192.168.0.96:3000'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    origin: ['https://pixeller.net', 'http://pixeller.net'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
+    exposedHeaders: ['set-cookie'], // 클라이언트에서 접근 가능한 헤더
   },
 })
 @UseInterceptors(JwtWsInterceptor)
@@ -137,23 +138,45 @@ export class ChatGateway {
       user.direction = data['direction'];
       user.username = session.id;
     }
+    console.log("user", user);
     client.broadcast.emit('message', { type: 'move', user: user });
   }
+
+  // @SubscribeMessage('disconnect')
+  // handleDisconnect(client: Socket): void {
+  //   const data = client.handshake['user'];
+  //   // console.log(`client disconnected ${data.uid}`);
+  //   if(data === undefined) return;
+  //   const x = this.users.get(data.uid).x;
+  //   const y = this.users.get(data.uid).y;
+
+  //   this.userService.setUserPosition(data.uid, x, y);
+  //   // 유저 위치정보 동기화를 위한 위치정보 업데이트
+  //   this.users.delete(data.uid);
+  //   client.broadcast.emit('message', { type: 'leave', uid: data.uid });
+  // }
 
   @SubscribeMessage('disconnect')
   handleDisconnect(client: Socket): void {
     const data = client.handshake['user'];
-    // console.log(`client disconnected ${data.uid}`);
-    if(data === undefined) return;
-    const x = this.users.get(data.uid).x;
-    const y = this.users.get(data.uid).y;
-
+    if (!data || !data.uid) {
+      console.log('Disconnect event received but user data is missing');
+      return;
+    }
+  
+    const user = this.users.get(data.uid);
+    if (!user) {
+      console.log(`User with uid ${data.uid} not found in users map`);
+      return;
+    }
+  
+    const { x, y } = user;
+  
     this.userService.setUserPosition(data.uid, x, y);
-    // 유저 위치정보 동기화를 위한 위치정보 업데이트
     this.users.delete(data.uid);
     client.broadcast.emit('message', { type: 'leave', uid: data.uid });
   }
-
+  
   
   @SubscribeMessage('refreshToken')
   handleRefreshToken(@MessageBody() newToken: string, @ConnectedSocket() client: Socket): void {

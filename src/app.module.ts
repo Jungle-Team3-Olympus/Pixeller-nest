@@ -39,19 +39,19 @@ dotenv.config();
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule implements NestModule{
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply((req, res, next) => {
-        if (req.method === 'OPTIONS') {
-          res.header('Access-Control-Allow-Origin', '*');
-          res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-          res.header('Access-Control-Allow-Headers', 'Content-Type, Accept');
-          res.sendStatus(204);
-        } else {
-          next();
-        }
-      })
-      .forRoutes({ path: '*', method: RequestMethod.OPTIONS });
-  }
+export class AppModule{
+  // configure(consumer: MiddlewareConsumer) {
+  //   consumer
+  //     .apply((req, res, next) => {
+  //       if (req.method === 'OPTIONS') {
+  //         res.header('Access-Control-Allow-Origin', '*');
+  //         res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+  //         res.header('Access-Control-Allow-Headers', 'Content-Type, Accept, Authorization, Origin');
+  //         res.sendStatus(204);
+  //       } else {
+  //         next();
+  //       }
+  //     })
+  //     .forRoutes({ path: '*', method: RequestMethod.OPTIONS });
+  // }
 }

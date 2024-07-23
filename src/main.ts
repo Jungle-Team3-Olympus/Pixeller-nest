@@ -1,32 +1,52 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-// import { AppModule } from './app.module.js';
 import { ValidationPipe } from '@nestjs/common';
 import * as dotenv from 'dotenv';
 import * as express from 'express';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 
 dotenv.config();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  
+  // WebSocket 어댑터 설정
+  app.useWebSocketAdapter(new IoAdapter(app));
+  
+  // 전역 파이프 설정
   app.useGlobalPipes(
     new ValidationPipe({
-      // whitelist: true, // DTO에 없는 값은 거르고 에러메세지 출력
-      // forbidNonWhitelisted: true, // DTO에 존재하지않는 값이 들어오면 에러메세지출력
       transform: true,
     }),
   );
     
+  // CORS 설정
   app.enableCors({
-    origin: ['https://pixeller.net', 'http://pixeller.net'], // 원하는 도메인
-    methods: ['GET', 'POST', 'PUT', 'DELETE'], // 허용할 HTTP 메서드
-    credentials: true, // 클라이언트에서 인증정보(Cookie 등)를 전송할 수 있도록 설정
-    // exposedHeaders: ['set-cookie'], // 클라이언트에서 접근 가능한 헤더
+    origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['https://pixeller.net', 'http://pixeller.net'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true,
+  });
+
+  // Socket.IO 특정 CORS 설정
+  const ioAdapter = new IoAdapter(app);
+  ioAdapter.createIOServer(Number(process.env.PORT) || 3333, {
+    cors: {
+      origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['https://pixeller.net', 'http://pixeller.net'],
+      methods: ['GET', 'POST'],
+      credentials: true,
+    },
   });
 
   // express.raw() 설정 -> openvidu webhook
   app.use(express.raw({ type: 'application/webhook+json' }));
 
-  await app.listen(3333);
+  // 서버 시작
+  const port = process.env.PORT || 3333;
+  await app.listen(port);
+  
+  console.log(`Application is running on: ${await app.getUrl()}`);
 }
-bootstrap();
+
+bootstrap().catch((error) => {
+  console.error('Application failed to start:', error);
+});

@@ -28,13 +28,13 @@ export class JwtWsInterceptor implements NestInterceptor {
       return next.handle();
     }
 
-    if (request.method === 'OPTIONS') {
-      response.header('Access-Control-Allow-Origin', '*');
-      response.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-      response.header('Access-Control-Allow-Headers', 'Content-Type, Accept');
-      response.sendStatus(204);
-      return next.handle();
-    }
+    // if (request.method === 'OPTIONS') {
+    //   response.header('Access-Control-Allow-Origin', '*');
+    //   response.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+    //   response.header('Access-Control-Allow-Headers', 'Content-Type, Accept');
+    //   response.sendStatus(204);
+    //   return next.handle();
+    // }
 
     const token = client.handshake?.headers?.authorization?.split(' ')[1];
     if (!token || token === 'null' || token === null) {
@@ -67,9 +67,9 @@ export class JwtWsInterceptor implements NestInterceptor {
     }
     
     return next.handle().pipe(
-      tap(() => {
-        response.header('Access-Control-Allow-Origin', '*');
-      }),
+      // tap(() => {
+      //   response.header('Access-Control-Allow-Origin', '*');
+      // }),
       catchError((err) => {
         client.emit('error', { message: 'Unauthorized' });
         return throwError(() => new WsException('Unauthorized'));

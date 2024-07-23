@@ -19,9 +19,10 @@ interface User {
 @WebSocketGateway({
   namespace: '/ws',
   cors: {
-    origin: ['http://pixeller.net', 'https://pixeller.net', 'http//192.168.0.96:3000'],
+    origin: ['https://pixeller.net', 'http://pixeller.net', 'http//192.168.0.96:3000'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
+    exposedHeaders: ['set-cookie'], // 클라이언트에서 접근 가능한 헤더
   },
 })
 @UseInterceptors(JwtWsInterceptor)
@@ -137,6 +138,7 @@ export class ChatGateway {
       user.direction = data['direction'];
       user.username = session.id;
     }
+    console.log("user", user);
     client.broadcast.emit('message', { type: 'move', user: user });
   }
 
